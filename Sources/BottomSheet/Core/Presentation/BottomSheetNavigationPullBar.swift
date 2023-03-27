@@ -21,6 +21,10 @@ public extension BottomSheetPresentationController {
             view.layer.cornerRadius = Style.size.height * 0.5
             return view
         }()
+        
+        public func configure(centerViewColor: UIColor) {
+            centerView.backgroundColor = centerViewColor
+        }
 
         init() {
             super.init(frame: .zero)

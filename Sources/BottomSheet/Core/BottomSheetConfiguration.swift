@@ -12,16 +12,24 @@ public struct BottomSheetConfiguration {
     public enum PullBarConfiguration {
         public struct PullBarAppearance {
             public let height: CGFloat
-
-            public init(height: CGFloat) {
+            public let topOffset: CGFloat
+            public let color: UIColor
+            
+            public init(height: CGFloat, topOffset: CGFloat, color: UIColor) {
                 self.height = height
+                self.topOffset = topOffset
+                self.color = color
             }
         }
-
+        
         case hidden
         case visible(PullBarAppearance)
-
-        public static let `default`: PullBarConfiguration = .visible(PullBarAppearance(height: 20))
+        
+        public static let `default`: PullBarConfiguration = .visible(PullBarAppearance(
+            height: 20,
+            topOffset: 6,
+            color: UIColor(red: 203 / 255.0, green: 213 / 255.0, blue: 222 / 255.0, alpha: 1)
+        ))
     }
 
     public struct ShadowConfiguration {

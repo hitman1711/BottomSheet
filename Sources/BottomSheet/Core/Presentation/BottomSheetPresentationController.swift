@@ -277,6 +277,7 @@ public final class BottomSheetPresentationController: UIPresentationController {
     private func addPullBarIfNeeded(containerView: UIView) {
         guard case .visible(let appearance) = configuration.pullBarConfiguration else { return }
         let pullBar = PullBar()
+        pullBar.configure(centerViewColor: appearance.color)
         pullBar.frame.size = CGSize(width: containerView.frame.width, height: appearance.height)
         containerView.addSubview(pullBar)
 
@@ -322,8 +323,10 @@ public final class BottomSheetPresentationController: UIPresentationController {
 
         let preferredHeight = presentedViewController.preferredContentSize.height + windowInsets.bottom
         var maxHeight = containerView.bounds.height - windowInsets.top
-        if case .visible(let appearance) = configuration.pullBarConfiguration {
-            maxHeight -= appearance.height
+        if case .visible(let appearance) = configuration.pullBarConfiguration,
+            appearance.topOffset < 0
+        {
+            maxHeight -= abs(appearance.topOffset)
         }
         let height = min(preferredHeight, maxHeight)
 
@@ -344,9 +347,11 @@ public final class BottomSheetPresentationController: UIPresentationController {
         let targetFrame = targetFrameForPresentedView()
         if !oldFrame.isAlmostEqual(to: targetFrame) {
             presentedView.frame = targetFrame
-            if case .visible(let appearance) = configuration.pullBarConfiguration {
-                pullBar?.frame.origin.y = presentedView.frame.minY - appearance.height + pixelSize
+            if let pullBar, case .visible(let appearance) = configuration.pullBarConfiguration {
+                pullBar.frame.origin.y = presentedView.frame.minY + appearance.topOffset + pixelSize
+                pullBar.superview?.bringSubviewToFront(pullBar)
             }
+
         }
     }
 
@@ -516,7 +521,9 @@ extension BottomSheetPresentationController: UIViewControllerAnimatedTransitioni
         let containerView = transitionContext.containerView
         if isPresenting {
             containerView.addSubview(destinationView)
-
+            if let pullBar = pullBar {
+               containerView.bringSubviewToFront(pullBar)
+            }
             destinationView.frame = containerView.bounds
         }
 
@@ -533,10 +540,13 @@ extension BottomSheetPresentationController: UIViewControllerAnimatedTransitioni
         )
 
         let updatePullBarFrame = {
-            guard case .visible(let appearnce) = self.configuration.pullBarConfiguration else { return }
-
-            self.pullBar?.frame.origin.y = presentedView.frame.minY - appearnce.height + pixelSize
+            guard let pullBar = self.pullBar, case .visible(let appearnce) = self.configuration.pullBarConfiguration
+            else { return }
+            pullBar.frame.origin.y = presentedView.frame.minY + appearnce.topOffset + pixelSize
+            pullBar.superview?.bringSubviewToFront(pullBar)
         }
+        
+        
 
         presentedView.frame = isPresenting ? offscreenFrame : frameInContainer
         updatePullBarFrame()
